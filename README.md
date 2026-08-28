@@ -1,6 +1,6 @@
 # Dale: The operating System for your Evolution 📈
 
-Dlae is an integrated life-management system designed to eliminate the friction between your goals and your data. No more scattered WhatsApp notes or clunky Excel sheets.
+Dale is an integrated life-management system designed to eliminate the friction between your goals and your data. No more scattered WhatsApp notes or clunky Excel sheets.
 
 ## 🎯 Vision
 To provide a high-performance, zero-cost tool for tracking **Body, Nutrition, and Mind** in a single, unified interface. Built for those who value data-driven discipline.
