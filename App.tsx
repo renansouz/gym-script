@@ -1,24 +1,50 @@
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { initDatabase } from './src/database/init';
+import { WorkoutService } from './src/database/workoutService';
 import ExerciseLibrary from './src/screens/ExerciseLibrary';
+import ActiveWorkout from './src/screens/ActiveWorkout';
+import { View, Button, Text } from 'react-native';
+
+const Stack = createNativeStackNavigator();
+
+function HomeScreen({ navigation }: any) {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text style={{ fontSize: 24, marginBottom: 20 }}>Welcome to DALE</Text>
+      <Button 
+        title="Start Empty Workout" 
+        onPress={async () => {
+          const id = await WorkoutService.startSession('1');
+          navigation.navigate('ActiveWorkout', { 
+            sessionId: id, 
+            exerciseId: '1', 
+            exerciseName: 'Bench Press' 
+          });
+        }} 
+      />
+      <Button title="View Library" onPress={() => navigation.navigate('Library')} />
+    </View>
+  );
+}
 
 export default function App() {
-  const [dbReady, setDbReady] = useState(false);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    initDatabase()
-      .then(() => setDbReady(true))
-      .catch((error) => console.error("DB Init Error:", error));
+    initDatabase().then(() => setReady(true));
   }, []);
 
-  if (!dbReady) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
+  if (!ready) return null;
 
-  return <ExerciseLibrary />;
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="ActiveWorkout" component={ActiveWorkout} />
+        <Stack.Screen name="Library" component={ExerciseLibrary} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
 }
