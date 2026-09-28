@@ -84,21 +84,6 @@ npm run preview   # sanity-check the production build locally
 
 This outputs a static `dist/` folder plain HTML/CSS/JS, deployable anywhere that serves static files.
 
-## Deploying for Free
-
-### Vercel
-
-1. Push this folder to a GitHub repo.
-2. Import the repo at [vercel.com/new](https://vercel.com/new).
-3. Framework preset: **Vite**. Build command `npm run build`, output directory `dist`. (Already configured via `vercel.json`.)
-4. Deploy you'll get a free `https://your-app.vercel.app` URL.
-
-### Netlify
-
-1. Push this folder to a GitHub repo.
-2. "Add new site" → "Import an existing project" at [app.netlify.com](https://app.netlify.com).
-3. Build settings are pre-configured in `netlify.toml` (`npm run build`, publish `dist`).
-4. Deploy.
 
 ### Installing on your phone (PWA)
 
