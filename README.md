@@ -122,3 +122,8 @@ See the [`docs/`](./docs) directory for deeper dives:
 - [`docs/architecture.md`](./docs/architecture.md) component tree, data flow, view lifecycle
 - [`docs/state-management.md`](./docs/state-management.md) full store shape, actions, streak algorithm rationale
 - [`docs/data-model.md`](./docs/data-model.md) workout program schema, exercise fields, extensibility notes
+
+
+## Notes
+- The shipped UI is currently a **light** theme (see `tailwind.config.js` tokens); older docs that say "dark" are out of date.
+- Run tests with `npm test`. Rest-timer behavior and limits: `docs/notifications.md`.

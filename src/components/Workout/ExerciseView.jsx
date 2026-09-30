@@ -50,7 +50,7 @@ export default function ExerciseView({ exercise, lastEntry, pr, loggedEntry, dra
         <p className="text-center text-xs uppercase tracking-wide text-base-600 font-semibold mb-4">
           Log your best set
         </p>
-        <div className="flex items-center justify-center gap-6">
+        <div className="flex flex-col gap-4">
           {!exercise.isTimeBased && (
             <NumberStepper label="Weight" value={draft.weight} onChange={(v) => onDraftChange({ ...draft, weight: v })} step={2.5} suffix="kg" />
           )}

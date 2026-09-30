@@ -1,4 +1,4 @@
-import { todayStr, daysAgoStr } from './dateHelpers'
+import { todayStr, daysAgoStr, parseDateStr } from './dateHelpers'
 
 /**
  * calculateStreak
@@ -21,24 +21,31 @@ import { todayStr, daysAgoStr } from './dateHelpers'
  *
  * @param {Set<string>} workoutDates - set of 'YYYY-MM-DD' strings with a completed workout
  * @param {number} maxRestDaysPerWeek - rest days allowed per rolling 7-day window
+ * @param {string} today - 'YYYY-MM-DD' (injectable for tests)
  * @returns {{ streak: number, workedOutToday: boolean }}
  */
-export function calculateStreak(workoutDates, maxRestDaysPerWeek = 2) {
-  const today = todayStr()
+export function calculateStreak(workoutDates, maxRestDaysPerWeek = 2, today = todayStr()) {
   const workedOutToday = workoutDates.has(today)
 
   if (workoutDates.size === 0) {
     return { streak: 0, workedOutToday: false }
   }
 
+  // Never count (or grant rest-day allowance for) days before the user's very
+  // first logged session. 'YYYY-MM-DD' strings sort chronologically.
+  const firstDate = [...workoutDates].sort()[0]
+
   let streak = 0
+  let foundWorkout = false
   let window = [] // most recent day at index 0
   let dayOffset = workedOutToday ? 0 : 1 // start today if done, else start yesterday
   const HARD_CAP_DAYS = 3650 // safety guard against infinite loops
 
   for (let i = 0; i < HARD_CAP_DAYS; i++) {
-    const dateStr = daysAgoStr(dayOffset + i)
+    const dateStr = daysAgoStr(dayOffset + i, parseDateStr(today))
+    if (dateStr < firstDate) break // fix: no retroactive streak before first workout
     const isWorkoutDay = workoutDates.has(dateStr)
+    if (isWorkoutDay) foundWorkout = true
 
     window.unshift(isWorkoutDay)
     if (window.length > 7) window.pop()
@@ -55,5 +62,6 @@ export function calculateStreak(workoutDates, maxRestDaysPerWeek = 2) {
     if (i > 400) break
   }
 
-  return { streak, workedOutToday }
+  // A streak made only of forgiven rest days (no workout reached) is not a streak.
+  return { streak: foundWorkout ? streak : 0, workedOutToday }
 }

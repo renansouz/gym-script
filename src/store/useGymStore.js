@@ -25,7 +25,12 @@ const initialState = {
   history: {},
   sessions: [],
   overrides: {},
-  activeSession: null
+  activeSession: null,
+  // Rest timer lives in the global store (not component state) so it survives
+  // navigation and app close/reopen. Remaining time is ALWAYS derived from the
+  // wall-clock `endTimestamp`, never counted down with setInterval.
+  //   null | { endTimestamp, totalSeconds, pausedRemainingMs: number|null, alerted: boolean }
+  restTimer: null
 }
 
 export const useGymStore = create(
@@ -179,12 +184,67 @@ export const useGymStore = create(
         set({
           history: nextHistory,
           sessions: [...filteredSessions, session],
-          activeSession: null
+          activeSession: null,
+          restTimer: null
         })
       },
 
       cancelWorkout() {
-        set({ activeSession: null })
+        set({ activeSession: null, restTimer: null })
+      },
+
+      // ---------- Rest timer (wall-clock based) ----------
+
+      startRest(seconds) {
+        set({
+          restTimer: {
+            endTimestamp: Date.now() + seconds * 1000,
+            totalSeconds: seconds,
+            pausedRemainingMs: null,
+            alerted: false
+          }
+        })
+      },
+
+      /** Add/subtract seconds (e.g. +15 / -15) from the running or paused timer. */
+      adjustRest(deltaSec) {
+        const t = get().restTimer
+        if (!t) return
+        const delta = deltaSec * 1000
+        if (t.pausedRemainingMs !== null) {
+          const next = Math.max(0, t.pausedRemainingMs + delta)
+          set({ restTimer: { ...t, pausedRemainingMs: next, totalSeconds: Math.max(t.totalSeconds, Math.ceil(next / 1000)) } })
+        } else {
+          const end = Math.max(Date.now(), t.endTimestamp + delta)
+          const remainingSec = Math.ceil((end - Date.now()) / 1000)
+          set({
+            restTimer: {
+              ...t,
+              endTimestamp: end,
+              totalSeconds: Math.max(t.totalSeconds, remainingSec),
+              alerted: end - Date.now() > 0 ? false : t.alerted
+            }
+          })
+        }
+      },
+
+      togglePauseRest() {
+        const t = get().restTimer
+        if (!t || t.alerted) return
+        if (t.pausedRemainingMs !== null) {
+          set({ restTimer: { ...t, endTimestamp: Date.now() + t.pausedRemainingMs, pausedRemainingMs: null } })
+        } else {
+          set({ restTimer: { ...t, pausedRemainingMs: Math.max(0, t.endTimestamp - Date.now()) } })
+        }
+      },
+
+      markRestAlerted() {
+        const t = get().restTimer
+        if (t) set({ restTimer: { ...t, alerted: true } })
+      },
+
+      clearRest() {
+        set({ restTimer: null })
       }
     }),
     {

@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight, List, X } from 'lucide-react'
 import { useGymStore } from '../../store/useGymStore'
 import ExerciseView from './ExerciseView'
 import ExerciseDrawer from './ExerciseDrawer'
-import RestTimer from './RestTimer'
+import { prepareRestAlerts } from '../../utils/restAlert'
 import Button from '../shared/Button'
 
 export default function ActiveWorkout({ onExit }) {
@@ -19,7 +19,8 @@ export default function ActiveWorkout({ onExit }) {
   const getPR = useGymStore((s) => s.getPR)
 
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [restSeconds, setRestSeconds] = useState(null)
+  const startRest = useGymStore((s) => s.startRest)
+  const restActive = useGymStore((s) => s.restTimer !== null)
   const [draft, setDraft] = useState({ weight: 0, reps: 0 })
 
   const day = program.find((d) => d.id === activeSession?.dayId)
@@ -81,7 +82,7 @@ export default function ActiveWorkout({ onExit }) {
         </button>
       </header>
 
-      <div className="flex-1 overflow-y-auto px-4 py-5 no-scrollbar max-w-md mx-auto w-full">
+      <div className={`flex-1 overflow-y-auto px-4 py-5 no-scrollbar max-w-md mx-auto w-full ${restActive ? 'pb-24' : ''}`}>
         <ExerciseView
           exercise={exercise}
           lastEntry={getLastEntry(exercise.id)}
@@ -90,7 +91,10 @@ export default function ActiveWorkout({ onExit }) {
           draft={draft}
           onDraftChange={setDraft}
           onLog={handleLog}
-          onStartRest={setRestSeconds}
+          onStartRest={(sec) => {
+            prepareRestAlerts() // user tap: unlock audio + ask notification permission
+            startRest(sec)
+          }}
         />
       </div>
 
@@ -122,9 +126,6 @@ export default function ActiveWorkout({ onExit }) {
         onJump={goToExercise}
       />
 
-      {restSeconds !== null && (
-        <RestTimer initialSeconds={restSeconds} onClose={() => setRestSeconds(null)} />
-      )}
     </div>
   )
 }
